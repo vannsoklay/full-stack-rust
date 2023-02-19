@@ -1,0 +1,19 @@
+[package]
+name = "server"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+actix = "*"
+actix-web = "*"
+actix-cors = "*"
+sqlx = { version = "*", features = ["runtime-actix-native-tls", "postgres", "uuid", "chrono"] }
+
+dotenv = "0.15.0"
+env_logger = "0.10.0"
+serde = { version = "*", features = ["derive"] }
+serde_json = "*"
+uuid = { version = "1.2.2", features = ["serde", "v4"] }
+chrono = { version = "0.4.23", features = ["serde"] }
