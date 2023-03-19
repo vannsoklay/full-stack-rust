@@ -4,9 +4,10 @@ use crate::{
 };
 use actix_web::{get, post, web, HttpResponse, Responder};
 use serde_json::json;
+use crate::utils::{handler_error::ServiceError};
 
 #[get("/stories")]
-pub async fn show_many_story(
+pub async fn find_all_story(
     opts: web::Query<FilterOptions>,
     data: web::Data<AppState>,
 ) -> impl Responder {
@@ -40,7 +41,7 @@ pub async fn show_many_story(
 async fn create_story(
     body: web::Json<CreateStorySchema>,
     data: web::Data<AppState>,
-) -> impl Responder {
+) -> Result<HttpResponse, ServiceError> {
     let query_result = sqlx::query_as::<_, Story>(
         "INSERT INTO stories (title,content,category) VALUES ($1, $2, $3) RETURNING *",
     )
@@ -52,28 +53,26 @@ async fn create_story(
 
     match query_result {
         Ok(story) => {
-            let story_response = serde_json::json!({"status": "success","data": serde_json::json!({
+            let story = serde_json::json!({"status": 200,"data": serde_json::json!({
                 "story": story
             })});
 
-            return HttpResponse::Ok().json(story_response);
+            Ok(HttpResponse::Ok().json(&story))
         }
         Err(e) => {
             if e.to_string()
                 .contains("duplicate key value violates unique constraint")
             {
-                return HttpResponse::BadRequest()
-                .json(serde_json::json!({"status": "fail","message": "Story with that title already exists"}));
+                return Err(ServiceError::BadRequest("User with that title already exists".to_string()))
             }
 
-            return HttpResponse::InternalServerError()
-                .json(serde_json::json!({"status": "error","message": format!("{:?}", e)}));
+            return Err(ServiceError::InternalServerError(format!("Please try later")))
         }
     }
 }
 
 #[get("/stories/{id}")]
-async fn show_one_story(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> impl Responder {
+async fn find_story(path: web::Path<uuid::Uuid>, data: web::Data<AppState>) -> impl Responder {
     let story_id = path.into_inner();
     let query_result = sqlx::query_as::<_, Story>("SELECT * FROM stories WHERE id = $1")
         .bind(story_id)

@@ -1,18 +1,28 @@
 extern crate sqlx;
 
-mod schema;
+mod config;
 mod routes;
+mod schema;
+mod security;
 mod services;
+mod utils;
+mod models;
+mod middleware;
 
 use actix_cors::Cors;
+
 use actix_web::middleware::Logger;
 use actix_web::{http::header, web, App, HttpServer};
+use config::Config;
 use dotenv::dotenv;
+use redis::Client;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
 
 #[derive(Debug)]
 pub struct AppState {
-    pub db: Pool<Postgres>,
+    db: Pool<Postgres>,
+    env: Config,
+    redis_client: Client,
 }
 
 #[actix_web::main]
@@ -23,13 +33,11 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     env_logger::init();
 
-    let database_url = std::env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    let address = std::env::var("ADDRESS").expect("ADDRESS must be set");
-    let port = std::env::var("PORT").expect("PORT must be set");
+    let config = Config::init();
 
     let pool = match PgPoolOptions::new()
         .max_connections(10)
-        .connect(&database_url)
+        .connect(&config.database_url)
         .await
     {
         Ok(pool) => {
@@ -42,10 +50,22 @@ async fn main() -> std::io::Result<()> {
         }
     };
 
-    println!("🚀 Server started successfully at {}:{}", &address, &port);
+    let redis_client = match Client::open(config.redis_url.to_owned()) {
+        Ok(client) => {
+            println!("✅Connection to the redis is successful!");
+            client
+        }
+        Err(e) => {
+            println!("🔥 Error connecting to Redis: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    println!("🚀 Server started successfully at {}:{}", "0.0.0.0", 8001);
+
     HttpServer::new(move || {
         let cors = Cors::default()
-            .allowed_origin("http://localhost:3000")
+            .allowed_origin(&config.client_origin)
             .allowed_methods(vec!["GET", "POST", "PATCH", "DELETE"])
             .allowed_headers(vec![
                 header::CONTENT_TYPE,
@@ -54,12 +74,16 @@ async fn main() -> std::io::Result<()> {
             ])
             .supports_credentials();
         App::new()
-            .app_data(web::Data::new(AppState { db: pool.clone() }))
-            .configure(routes::api::config)
+            .app_data(web::Data::new(AppState {
+                db: pool.clone(),
+                env: config.clone(),
+                redis_client: redis_client.clone(),
+            }))
             .wrap(cors)
+            .configure(routes::api::config)
             .wrap(Logger::default())
     })
-    .bind((address.as_str(), 8000))?
+    .bind(("0.0.0.0", 8001))?
     .run()
     .await
 }

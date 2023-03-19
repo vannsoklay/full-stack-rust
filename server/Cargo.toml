@@ -7,13 +7,27 @@ edition = "2021"
 
 [dependencies]
 actix = "*"
+actix-identity = "*"
+actix-session = { version = "*", features = ["redis-rs-session"] }
 actix-web = "*"
 actix-cors = "*"
-sqlx = { version = "*", features = ["runtime-actix-native-tls", "postgres", "uuid", "chrono"] }
+jsonwebtoken = "*"
+rust-argon2 = "*"
+base64 = "0.21.0"
+redis = "*"
+sqlx = { version = "*", features = [
+    "runtime-actix-native-tls",
+    "postgres",
+    "uuid",
+    "chrono",
+] }
 
+futures = "*"
 dotenv = "0.15.0"
 env_logger = "0.10.0"
+derive_more = "*"
 serde = { version = "*", features = ["derive"] }
 serde_json = "*"
+lazy_static = "*"
 uuid = { version = "1.2.2", features = ["serde", "v4"] }
 chrono = { version = "0.4.23", features = ["serde"] }
