@@ -1,5 +1,5 @@
 use crate::{
-    middleware::auth::RequiredMiddleware,
+    middleware::auth::AuthCheck,
     models::user::{LoginUserSchema, RegisterUserSchema, User},
     schema::user::filter_user_record,
     utils::{handler_error::ServiceError, handler_jwt, hash_password, verify},
@@ -275,7 +275,7 @@ async fn refresh_access_token_handler(
 #[get("/auth/logout")]
 async fn logout_handler(
     req: HttpRequest,
-    auth_guard: RequiredMiddleware,
+    auth_guard: AuthCheck,
     data: web::Data<AppState>,
 ) -> impl Responder {
     let message = "Token is invalid or session has expired";
@@ -337,7 +337,7 @@ async fn logout_handler(
 }
 
 #[get("/users/me")]
-async fn get_me_handler(auth_guard: RequiredMiddleware) -> impl Responder {
+async fn get_me_handler(auth_guard: AuthCheck) -> impl Responder {
     let json_response = serde_json::json!({
         "status":  "success",
         "data": serde_json::json!({

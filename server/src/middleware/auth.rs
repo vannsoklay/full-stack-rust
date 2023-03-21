@@ -1,7 +1,6 @@
 use crate::utils::handler_error::ServiceError;
 use actix_web::{dev::Payload};
 use actix_web::{http, web, FromRequest, HttpRequest};
-use core::fmt;
 use futures::executor::block_on;
 use redis::Commands;
 use serde::{Deserialize, Serialize};
@@ -11,26 +10,13 @@ use crate::models::user::User;
 use crate::utils::handler_jwt;
 use crate::AppState;
 
-#[derive(Debug, Serialize)]
-struct ErrorResponse {
-    status: i32,
-    message: String,
-    error: String,
-}
-
-impl fmt::Display for ErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", serde_json::json!(&self))
-    }
-}
-
 #[derive(Debug, Serialize, Deserialize)]
-pub struct RequiredMiddleware {
+pub struct AuthCheck {
     pub user: User,
     pub access_token_uuid: uuid::Uuid,
 }
 
-impl FromRequest for RequiredMiddleware {
+impl FromRequest for AuthCheck {
     type Error = ServiceError;
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
@@ -99,7 +85,7 @@ impl FromRequest for RequiredMiddleware {
         };
 
         match block_on(user_exists_result) {
-            Ok(user) => ready(Ok(RequiredMiddleware {
+            Ok(user) => ready(Ok(AuthCheck {
                 access_token_uuid,
                 user,
             })),

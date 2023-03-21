@@ -24,10 +24,11 @@ CREATE INDEX users_email_idx ON users (email);
 CREATE TABLE
     IF NOT EXISTS stories (
         id UUID PRIMARY KEY NOT NULL DEFAULT (uuid_generate_v4()),
-        title VARCHAR(255) NOT NULL UNIQUE,
+        user_id UUID NOT NULL,
         content TEXT NOT NULL,
-        category VARCHAR(100),
+        story_image VARCHAR NOT NULL DEFAULT 'story-default.png',
         published BOOLEAN DEFAULT FALSE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON UPDATE CASCADE,
         created_at TIMESTAMP
         WITH
             TIME ZONE DEFAULT NOW(),

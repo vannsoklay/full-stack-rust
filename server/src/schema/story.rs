@@ -15,18 +15,16 @@ pub struct ParamOptions {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct CreateStorySchema {
-    pub title: String,
     pub content: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub category: Option<String>,
+    pub story_image: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub published: Option<bool>,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct UpdateStorySchema {
-    pub title: Option<String>,
     pub content: Option<String>,
+    pub story_image: Option<String>,
     pub category: Option<String>,
     pub published: Option<bool>,
 }
@@ -37,10 +35,11 @@ pub struct UpdateStorySchema {
 #[allow(non_snake_case)]
 pub struct Story {
     pub id: Uuid,
-    pub title: String,
+    pub user_id: Uuid,
     pub content: String,
-    pub category: Option<String>,
+    pub story_image: String,
     pub published: Option<bool>,
+    pub name: String,
     #[serde(rename = "createdAt")]
     pub created_at: Option<chrono::DateTime<chrono::Utc>>,
     #[serde(rename = "updatedAt")]
