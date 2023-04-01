@@ -40,3 +40,4 @@ pub fn filter_user_record(user: &User) -> FilteredUser {
         updatedAt: user.updated_at.unwrap(),
     }
 }
+

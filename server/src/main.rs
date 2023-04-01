@@ -8,6 +8,8 @@ mod services;
 mod utils;
 mod models;
 mod middleware;
+mod repository;
+mod api;
 
 use actix_cors::Cors;
 
@@ -52,7 +54,7 @@ async fn main() -> std::io::Result<()> {
 
     let redis_client = match Client::open(config.redis_url.to_owned()) {
         Ok(client) => {
-            println!("✅Connection to the redis is successful!");
+            println!("✅ Connection to the redis is successful!");
             client
         }
         Err(e) => {

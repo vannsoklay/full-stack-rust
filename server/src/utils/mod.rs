@@ -1,7 +1,10 @@
 pub mod handler_jwt;
 pub mod handler_error;
+pub mod handler_response;
 use self::handler_error::ServiceError;
 use argon2::{self, Config};
+
+pub type Response<T> = std::result::Result<T, handler_response::Error>;
 
 lazy_static::lazy_static! {
     pub static ref SECRET_KEY_PASSWORD: String = std::env::var("SECRET_KEY_PASSWORD").unwrap_or_else(|_| "0123".repeat(8));

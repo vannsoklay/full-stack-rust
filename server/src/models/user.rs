@@ -1,5 +1,6 @@
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 
 #[derive(Deserialize, Debug)]
 pub struct FilterOptions {
@@ -12,9 +13,8 @@ pub struct ParamOptions {
     pub id: String,
 }
 
-
 #[allow(non_snake_case)]
-#[derive(Debug, Deserialize, sqlx::FromRow, Serialize, Clone)]
+#[derive(Debug, FromRow, Deserialize, Serialize, Clone, sqlx::Type)]
 pub struct User {
     pub id: uuid::Uuid,
     pub name: String,
