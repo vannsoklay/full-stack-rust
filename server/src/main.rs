@@ -1,15 +1,13 @@
 extern crate sqlx;
 
 mod config;
-mod routes;
-mod schema;
-mod security;
-mod services;
 mod utils;
 mod models;
 mod middleware;
 mod repository;
 mod api;
+mod router;
+mod security;
 
 use actix_cors::Cors;
 
@@ -82,7 +80,7 @@ async fn main() -> std::io::Result<()> {
                 redis_client: redis_client.clone(),
             }))
             .wrap(cors)
-            .configure(routes::api::config)
+            .configure(router::config)
             .wrap(Logger::default())
     })
     .bind(("0.0.0.0", 8001))?

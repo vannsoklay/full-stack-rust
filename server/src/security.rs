@@ -1,8 +1,7 @@
 use crate::{
     middleware::auth::AuthCheck,
-    models::user::{LoginUserSchema, RegisterUserSchema, User},
-    schema::user::filter_user_record,
-    utils::{handler_error::ServiceError, handler_jwt, hash_password, verify},
+    models::user::{LoginUserSchema, RegisterUserSchema, User, filter_user_record},
+    utils::{handler_response::Error, handler_jwt, hash_password, verify},
     AppState,
 };
 use actix_web::{
@@ -17,7 +16,7 @@ use uuid::Uuid;
 async fn register_user_handler(
     body: web::Json<RegisterUserSchema>,
     data: web::Data<AppState>,
-) -> Result<HttpResponse, ServiceError> {
+) -> Result<HttpResponse, Error> {
     let exists: bool = sqlx::query("SELECT EXISTS (SELECT 1 FROM users WHERE email = $1)")
         .bind(body.email.to_owned())
         .fetch_one(&data.db)
@@ -60,7 +59,7 @@ async fn register_user_handler(
 async fn login_user_handler(
     body: web::Json<LoginUserSchema>,
     data: web::Data<AppState>,
-) -> Result<HttpResponse, ServiceError> {
+) -> Result<HttpResponse, Error> {
     let query_result = sqlx::query_as::<_, User>("SELECT * FROM users WHERE email = $1")
         .bind(body.email.to_string())
         .fetch_optional(&data.db)

@@ -2,6 +2,7 @@ use actix_web::{error::ResponseError, HttpResponse, Responder};
 use derive_more::*;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use sqlx::types::JsonValue;
 
 #[derive(Debug, Display)]
 pub enum Error {
@@ -36,7 +37,7 @@ impl ResponseSuccess for Success {
         return HttpResponse::Ok()
             .json(serde_json::json!({"status": 200, "message": "success", "data": object}));
     }
-    fn get_all(array_object: Vec<Value>) -> HttpResponse {
+    fn get_all(array_object: Vec<JsonValue>) -> HttpResponse {
         return HttpResponse::Ok()
             .json(serde_json::json!({"status": 200, "message": "success", "data": array_object}));
     }

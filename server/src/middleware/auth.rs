@@ -1,4 +1,4 @@
-use crate::utils::handler_error::ServiceError;
+use crate::utils::handler_response::Error;
 use actix_web::{dev::Payload};
 use actix_web::{http, web, FromRequest, HttpRequest};
 use futures::executor::block_on;
@@ -17,7 +17,7 @@ pub struct AuthCheck {
 }
 
 impl FromRequest for AuthCheck {
-    type Error = ServiceError;
+    type Error = Error;
     type Future = Ready<Result<Self, Self::Error>>;
     fn from_request(req: &HttpRequest, _: &mut Payload) -> Self::Future {
         let data = req.app_data::<web::Data<AppState>>().unwrap();
@@ -32,7 +32,7 @@ impl FromRequest for AuthCheck {
             });
 
         if access_token.is_none() {
-            return ready(Err(ServiceError::Unauthorized(format!("You are not logged in, please provide token"))));
+            return ready(Err(Error::Unauthorized(format!("You are not logged in, please provide token"))));
         }
 
         let access_token_details = match handler_jwt::verify_jwt_token(
@@ -41,7 +41,7 @@ impl FromRequest for AuthCheck {
         ) {
             Ok(token_details) => token_details,
             Err(e) => {
-                return ready(Err(ServiceError::Unauthorized(format!("{:?}", e))));
+                return ready(Err(Error::Unauthorized(format!("{:?}", e))));
             }
         };
 
@@ -52,7 +52,7 @@ impl FromRequest for AuthCheck {
             let mut redis_client = match data.redis_client.get_connection() {
                 Ok(redis_client) => redis_client,
                 Err(e) => {
-                    return Err(ServiceError::InternalServerError(format!("{:?}", e)));
+                    return Err(Error::InternalServerError(format!("{:?}", e)));
                 }
             };
 
@@ -60,7 +60,7 @@ impl FromRequest for AuthCheck {
 
             match redis_result {
                 Ok(value) => Ok(value),
-                Err(_) => Err(ServiceError::Unauthorized(format!("Token is invalid or session has expired"))),
+                Err(_) => Err(Error::Unauthorized(format!("Token is invalid or session has expired"))),
             }
         };
 
@@ -76,10 +76,10 @@ impl FromRequest for AuthCheck {
             match query_result {
                 Ok(Some(user)) => Ok(user),
                 Ok(None) => {
-                    Err(ServiceError::Unauthorized(format!("the user belonging to this token no logger exists")))
+                    Err(Error::Unauthorized(format!("the user belonging to this token no logger exists")))
                 }
                 Err(_) => {
-                    Err(ServiceError::Unauthorized(format!("Faled to check user existence")))
+                    Err(Error::Unauthorized(format!("Faled to check user existence")))
                 }
             }
         };
@@ -89,7 +89,7 @@ impl FromRequest for AuthCheck {
                 access_token_uuid,
                 user,
             })),
-            Err(error) => ready(Err(ServiceError::InternalServerError(format!("{:?}", error)))),
+            Err(error) => ready(Err(Error::InternalServerError(format!("{:?}", error)))),
         }
     }
 }

@@ -1,7 +1,5 @@
 pub mod handler_jwt;
-pub mod handler_error;
 pub mod handler_response;
-use self::handler_error::ServiceError;
 use argon2::{self, Config};
 
 pub type Response<T> = std::result::Result<T, handler_response::Error>;
@@ -13,7 +11,7 @@ lazy_static::lazy_static! {
 const SALT: &'static [u8] = b"supersecuresalt";
 
 // WARNING THIS IS ONLY FOR DEMO PLEASE DO MORE RESEARCH FOR PRODUCTION USE
-pub async fn hash_password(password: &str) -> Result<String, ServiceError> {
+pub async fn hash_password(password: &str) -> Result<String, handler_response::Error> {
     let config = Config {
         secret: SECRET_KEY_PASSWORD.as_bytes(),
         ..Default::default()
@@ -21,15 +19,15 @@ pub async fn hash_password(password: &str) -> Result<String, ServiceError> {
     argon2::hash_encoded(
         password.as_bytes(), &SALT, &config).map_err(|err| {
         dbg!(err);
-        ServiceError::InternalServerError(format!("Please try later"))
+        handler_response::Error::InternalServerError(format!("Please try later"))
     })
 }
 
-pub async fn verify(hash: &str, password: &str) -> Result<bool, ServiceError> {
+pub async fn verify(hash: &str, password: &str) -> Result<bool, handler_response::Error> {
     argon2::verify_encoded_ext(hash, password.as_bytes(), SECRET_KEY_PASSWORD.as_bytes(), &[]).map_err(
         |err| {
             dbg!(err);
-            ServiceError::Unauthorized(format!("error"))
+            handler_response::Error::Unauthorized(format!("error"))
         },
     )
 }
