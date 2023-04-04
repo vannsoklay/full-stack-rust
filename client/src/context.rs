@@ -4,35 +4,38 @@ use std::ops::Deref;
 use yew::prelude::*;
 use yew_router::prelude::*;
 
+use crate::api::types::{User, UserLoginResponse};
+use crate::api::user::api_user_info;
 use crate::router::Route;
-use crate::api::types::CtxUser;
 
 /// State handle for the [`use_user_context`] hook.
 pub struct UseUserContextHandle {
-    inner: UseStateHandle<CtxUser>,
+    inner: UseStateHandle<User>,
     navigator: Navigator,
 }
 
 impl UseUserContextHandle {
-    pub fn login(&self, value: CtxUser) {
-        // Set global token after logged in
-        // set_token(Some(value.token.clone()));
-        self.inner.set(value);
-        // Redirect to home page
-        self.navigator.push(&Route::Home);
+    pub async fn login(&self, value: UserLoginResponse) {
+        if !value.access_token.is_empty() {
+            let user = api_user_info().await;
+            match user {
+                Ok(data) => {
+                    self.inner.set(data);
+                    self.navigator.push(&Route::Home);
+                }
+                Err(_) => self.logout(),
+            }
+        }
     }
 
     pub fn logout(&self) {
-        // Clear global token after logged out
-        // set_token(None);
-        self.inner.set(CtxUser::default());
-        // Redirect to home page
+        self.inner.set(User::default());
         self.navigator.push(&Route::Login);
     }
 }
 
 impl Deref for UseUserContextHandle {
-    type Target = CtxUser;
+    type Target = User;
 
     fn deref(&self) -> &Self::Target {
         &self.inner
@@ -65,7 +68,7 @@ impl fmt::Debug for UseUserContextHandle {
 /// This hook is used to manage user context.
 #[hook]
 pub fn use_user_context() -> UseUserContextHandle {
-    let inner = use_context::<UseStateHandle<CtxUser>>().unwrap();
+    let inner = use_context::<UseStateHandle<User>>().unwrap();
     let navigator = use_navigator().unwrap();
 
     UseUserContextHandle { inner, navigator }

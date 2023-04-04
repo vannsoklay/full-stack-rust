@@ -2,21 +2,6 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 
-#[derive(Serialize, Deserialize, Clone, Debug, Default)]
-#[serde(rename_all = "camelCase")]
-pub struct LoginInfo {
-    pub email: String,
-    pub password: String,
-}
-
-#[allow(non_snake_case)]
-#[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
-pub struct CtxUser {
-    pub is_authenticated: bool,
-    pub user: User,
-}
-
-
 #[allow(non_snake_case)]
 #[derive(Debug, Serialize, Deserialize, Default, PartialEq, Clone)]
 pub struct User {
@@ -29,6 +14,12 @@ pub struct User {
     pub verified: bool,
     pub createdAt: DateTime<Utc>,
     pub updatedAt: DateTime<Utc>,
+}
+
+impl User {
+    pub fn is_authenticated(&self) -> bool {
+        !self.id.is_empty()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -1,7 +1,6 @@
 use super::types::{ErrorResponse, User, UserLoginResponse, UserResponse};
 use reqwasm::http;
 
-
 pub async fn api_register_user(user_data: &str) -> Result<User, String> {
     let response = match http::Request::post("http://localhost:8001/api/auth/register")
         .header("Content-Type", "application/json")
@@ -103,4 +102,30 @@ pub async fn api_logout_user() -> Result<(), String> {
     }
 
     Ok(())
+}
+
+pub async fn api_refresh_token() -> Result<UserLoginResponse, String> {
+    let response = match http::Request::get("http://localhost:8001/api/auth/refresh")
+        .credentials(http::RequestCredentials::Include)
+        .send()
+        .await
+    {
+        Ok(res) => res,
+        Err(_) => return Err("Failed to make request".to_string()),
+    };
+
+    if response.status() != 200 {
+        let error_response = response.json::<ErrorResponse>().await;
+        if let Ok(error_response) = error_response {
+            return Err(error_response.message);
+        } else {
+            return Err(format!("API error: {}", response.status()));
+        }
+    }
+
+    let res_json = response.json::<UserLoginResponse>().await;
+    match res_json {
+        Ok(data) => Ok(data),
+        Err(_) => Err("Failed to parse response".to_string()),
+    }
 }

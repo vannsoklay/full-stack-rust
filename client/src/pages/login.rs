@@ -4,8 +4,6 @@ use std::rc::Rc;
 
 use crate::api::user::api_login_user;
 use crate::components::{form_input::FormInput, loading_button::LoadingButton};
-use crate::router::{self};
-use crate::store::{set_page_loading, set_show_alert, Store};
 
 use serde::{Deserialize, Serialize};
 use validator::{Validate, ValidationErrors};
@@ -13,7 +11,7 @@ use wasm_bindgen_futures::spawn_local;
 use web_sys::HtmlInputElement;
 use yew::prelude::*;
 use yew_router::prelude::*;
-use yewdux::prelude::*;
+use crate::context::use_user_context;
 
 #[derive(Validate, Debug, Default, Clone, Serialize, Deserialize)]
 
@@ -47,7 +45,8 @@ fn get_input_callback(
 
 #[function_component]
 pub fn Login() -> Html {
-    let (store, dispatch) = use_store::<Store>();
+    let ctx_user = use_user_context();
+    // let (store, dispatch) = use_store::<Store>();
     // let user = store.auth_user.clone();
     let form = use_state(|| LoginUserSchema::default());
     let validation_errors = use_state(|| Rc::new(RefCell::new(ValidationErrors::new())));
@@ -95,20 +94,23 @@ pub fn Login() -> Html {
 
     let handle_email_input = get_input_callback("email", form.clone());
     let handle_password_input = get_input_callback("password", form.clone());
+    let cloned_ctx = ctx_user.clone();
 
     let on_submit = {
         let cloned_form = form.clone();
+        // let cloned_ctx = ctx_user.clone();
         let cloned_validation_errors = validation_errors.clone();
-        let store_dispatch = dispatch.clone();
+        // let store_dispatch = dispatch.clone();
         let cloned_navigator = navigator.clone();
 
         let cloned_email_input_ref = email_input_ref.clone();
         let cloned_password_input_ref = password_input_ref.clone();
-
+        
         Callback::from(move |event: SubmitEvent| {
             event.prevent_default();
 
-            let dispatch = store_dispatch.clone();
+            // let dispatch = store_dispatch.clone();
+            let cloned_ctx = ctx_user.clone();
             let form = cloned_form.clone();
             let validation_errors = cloned_validation_errors.clone();
             let navigator = cloned_navigator.clone();
@@ -120,24 +122,26 @@ pub fn Login() -> Html {
                 match form.validate() {
                     Ok(_) => {
                         let form_data = form.deref().clone();
-                        set_page_loading(true, dispatch.clone());
+                        // set_page_loading(true, dispatch.clone());
 
                         let email_input = email_input_ref.cast::<HtmlInputElement>().unwrap();
                         let password_input = password_input_ref.cast::<HtmlInputElement>().unwrap();
 
-                        email_input.set_value("");
-                        password_input.set_value("");
+                        // email_input.set_value("");
+                        // password_input.set_value("");
 
                         let form_json = serde_json::to_string(&form_data).unwrap();
                         let res = api_login_user(&form_json).await;
                         match res {
-                            Ok(_) => {
-                                set_page_loading(false, dispatch);
-                                navigator.push(&router::Route::Home);
+                            Ok(data) => {
+                                cloned_ctx.login(data).await;
+                                // set_page_loading(false, dispatch);
+                                // navigator.push(&router::Route::Home);
                             }
                             Err(e) => {
-                                set_page_loading(false, dispatch.clone());
-                                set_show_alert(e.to_string(), dispatch);
+                                // cloned_ctx.login(data).await;
+                                // set_page_loading(false, dispatch.clone());
+                                // set_show_alert(e.to_string(), dispatch);
                             }
                         };
                     }
@@ -151,7 +155,14 @@ pub fn Login() -> Html {
 
     html! {
          <div class="bg-grey-lighter font-sans">
-            <main class="container mx-auto flex justify-center items-center">
+            if cloned_ctx.is_authenticated() {
+                <ul class="space-x-3">
+                    <li class="text-gray-600">
+                       {"Permission Page"}
+                    </li>
+                </ul>
+            } else {
+                <main class="container mx-auto flex justify-center items-center">
                     <div class="w-1/3">
                         <div class="font-hairline flex justify-center w-full">
                             <h1 class="font-semibold text-2xl text-gray-600">{"Sign In"}</h1>
@@ -165,8 +176,7 @@ pub fn Login() -> Html {
                                 <FormInput label="Password" name="password" input_type="password" input_ref={password_input_ref} handle_onchange={handle_password_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()}/>                        </div>
                             <div class="flex items-center justify-between mt-6">
                                 <LoadingButton
-                                    loading={store.page_loading}
-                                    text_color={Some("text-ct-blue-600".to_string())}
+                                    loading={false}
                                 >
                                 {"Sign In"}
                                 </LoadingButton>
@@ -175,6 +185,7 @@ pub fn Login() -> Html {
                         </div>
                     </div>
                 </main>
+            }
         </div>
     }
 }

@@ -1,7 +1,5 @@
 use crate::components::card::Card;
-use wasm_bindgen::JsValue;
 use yew::prelude::*;
-use yewdux::log::info;
 use crate::context::use_user_context;
 
 #[function_component]
