@@ -173,7 +173,8 @@ pub fn Login() -> Html {
                                 <FormInput label="Email" name="email" input_type="email" input_ref={email_input_ref} handle_onchange={handle_email_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()}/>
                             </div>
                             <div class="mb-4">
-                                <FormInput label="Password" name="password" input_type="password" input_ref={password_input_ref} handle_onchange={handle_password_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()}/>                        </div>
+                                <FormInput label="Password" name="password" input_type="password" input_ref={password_input_ref} handle_onchange={handle_password_input} errors={&*validation_errors} handle_on_input_blur={validate_input_on_blur.clone()}/>                        
+                            </div>
                             <div class="flex items-center justify-between mt-6">
                                 <LoadingButton
                                     loading={false}

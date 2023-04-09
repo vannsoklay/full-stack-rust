@@ -14,11 +14,24 @@ pub struct Store {
     pub auth_user: Option<User>,
     pub page_loading: bool,
     pub alert_input: AlertInput,
+    pub modal_form: bool, 
 }
 
-pub fn set_page_loading(loading: bool, dispatch: Dispatch<Store>) {
+pub fn set_page_loading(page_loading: bool, dispatch: Dispatch<Store>) {
     dispatch.reduce_mut(move |store| {
-        store.page_loading = loading;
+        store.page_loading = page_loading;
+    })
+}
+
+pub fn set_open_form(modal_form: bool, dispatch: Dispatch<Store>) {
+    dispatch.reduce_mut(move |store| {
+        store.modal_form = modal_form;
+    })
+}
+
+pub fn set_close_form(modal_form: bool, dispatch: Dispatch<Store>) {
+    dispatch.reduce_mut(move |store| {
+        store.modal_form = !modal_form;
     })
 }
 

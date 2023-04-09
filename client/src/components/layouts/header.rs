@@ -2,6 +2,7 @@ use crate::{api::user::api_logout_user, router::Route};
 use wasm_bindgen_futures::spawn_local;
 use yew::prelude::*;
 use yew_router::prelude::*;
+use yewdux::log::info;
 
 use crate::context::use_user_context;
 
@@ -23,6 +24,7 @@ pub fn Header() -> Html {
             });
         })
     };
+    info!("user, {:?}", cloned_ctx.clone());
     html! {
         <div class="fixed w-full top-0">
         <div class="h-16 bg-gray-50">
@@ -33,12 +35,10 @@ pub fn Header() -> Html {
                     </li>
                 </ul>
                 if cloned_ctx.is_authenticated() {
-                     <ul class="space-x-3">
+                    <ul class="space-x-3 flex">
                         <li class="text-gray-600">
-                            {"Profile"}
+                            <Link<Route> to={Route::Setting}>{"Profile"}</Link<Route>>
                         </li>
-                    </ul>
-                    <ul class="space-x-3">
                         <li onclick={handle_logout} class="text-gray-600">
                             {"Logout"}
                         </li>

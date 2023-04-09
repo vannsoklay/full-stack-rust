@@ -3,13 +3,12 @@ use crate::api::user::{api_refresh_token, api_user_info};
 use crate::router;
 use yew::prelude::*;
 use yew_router::prelude::use_navigator;
+use yewdux::log::info;
 
 #[derive(Properties, Clone, PartialEq)]
 pub struct Props {
     pub children: Children,
 }
-
-/// User context provider.
 #[function_component(UserContextProvider)]
 pub fn user_context_provider(props: &Props) -> Html {
     let user = use_state(|| User::default());
@@ -38,6 +37,7 @@ pub fn user_context_provider(props: &Props) -> Html {
                                     loading.set(false);
                                 }
                                 Err(_) => {
+                                    info!("helllo");
                                     navigator.push(&router::Route::Login);
                                     loading.set(false);
                                 }
